@@ -95,22 +95,16 @@ func (f *Buffer) ReadAt(p []byte, off int64) (n int, err error) {
 	return n, err
 }
 
-func (f *Buffer) Write(p []byte) (int, error) {
+func (f *Buffer) Write(p []byte) (n int, err error) {
 	if f.isClosed {
 		return 0, io.EOF
 	}
 	if f.Index < 0 {
 		return 0, io.EOF
 	}
-	buffLen := int64(f.Buff.Len())
-	if f.Index > buffLen {
-		return 0, io.EOF
-	}
-	n, err := bytes.NewBuffer(f.Buff.Bytes()[f.Index:]).Write(p)
-	if err == nil {
-		f.Index = int64(f.Buff.Len())
-	}
+	n, err = f.Buff.Write(p)
 
+	f.Index += int64(n)
 	return n, err
 }
 
