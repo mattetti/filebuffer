@@ -103,7 +103,7 @@ func (f *Buffer) Write(p []byte) (int, error) {
 		return 0, io.EOF
 	}
 	buffLen := int64(f.Buff.Len())
-	if f.Index >= buffLen {
+	if f.Index > buffLen {
 		return 0, io.EOF
 	}
 	n, err := bytes.NewBuffer(f.Buff.Bytes()[f.Index:]).Write(p)
