@@ -33,6 +33,12 @@ func (f *Buffer) Bytes() []byte {
 	return f.Buff.Bytes()[f.Index:]
 }
 
+// String implements the Stringer interface
+func (f *Buffer) String() string {
+	return string(f.Buff.Bytes()[f.Index:])
+}
+
+// Read implements io.Reader https://golang.org/pkg/io/#Reader
 // Read reads up to len(p) bytes into p. It returns the number of bytes read (0 <= n <= len(p))
 // and any error encountered. Even if Read returns n < len(p), it may use all of p as scratch
 // space during the call. If some data is available but not len(p) bytes, Read conventionally
@@ -59,6 +65,7 @@ func (f *Buffer) Read(b []byte) (n int, err error) {
 	return n, err
 }
 
+// ReadAt implements io.ReaderAt https://golang.org/pkg/io/#ReaderAt
 // ReadAt reads len(p) bytes into p starting at offset off in the underlying input source.
 // It returns the number of bytes read (0 <= n <= len(p)) and any error encountered.
 //
@@ -95,6 +102,8 @@ func (f *Buffer) ReadAt(p []byte, off int64) (n int, err error) {
 	return n, err
 }
 
+// Write implements io.Writer https://golang.org/pkg/io/#Writer
+// by appending the passed bytes to the buffer unless the buffer is closed or index negative.
 func (f *Buffer) Write(p []byte) (n int, err error) {
 	if f.isClosed {
 		return 0, io.EOF
@@ -108,6 +117,7 @@ func (f *Buffer) Write(p []byte) (n int, err error) {
 	return n, err
 }
 
+// Seek implements io.Seeker https://golang.org/pkg/io/#Seeker
 func (f *Buffer) Seek(offset int64, whence int) (idx int64, err error) {
 	if f.isClosed {
 		return 0, io.EOF
@@ -131,7 +141,8 @@ func (f *Buffer) Seek(offset int64, whence int) (idx int64, err error) {
 	return abs, nil
 }
 
-// Close closes the File, rendering it unusable for I/O. It returns an error, if any.
+// Close implements io.Closer https://golang.org/pkg/io/#Closer
+// It closes the buffer, rendering it unusable for I/O. It returns an error, if any.
 func (f *Buffer) Close() error {
 	f.isClosed = true
 	return nil
