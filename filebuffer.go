@@ -111,6 +111,12 @@ func (f *Buffer) Write(p []byte) (n int, err error) {
 	if f.Index < 0 {
 		return 0, io.EOF
 	}
+	// we might have rewinded, let's reset the buffer before appending to it
+	idx := int(f.Index)
+	buffLen := f.Buff.Len()
+	if idx != buffLen && idx <= buffLen {
+		f.Buff = bytes.NewBuffer(f.Bytes()[:f.Index])
+	}
 	n, err = f.Buff.Write(p)
 
 	f.Index += int64(n)

@@ -128,3 +128,73 @@ func TestEmptyReaderConcurrent(t *testing.T) {
 	}
 	wg.Wait()
 }
+
+func TestClose(t *testing.T) {
+	b := New(nil)
+	err := b.Close()
+	if err != nil {
+		t.Fatalf("expected closing to not return an error but returned %v", err)
+	}
+	n, err := b.Write([]byte{0x42, 0x42, 0x42})
+	if n != 0 {
+		t.Fatalf("expected 0 bytes to be written but %d were reported written", n)
+	}
+}
+
+func TestWriter(t *testing.T) {
+	b := New(nil)
+	n, err := b.Write([]byte("this is a test"))
+	if n != 14 {
+		t.Fatalf("expected 14 characters written, reported %d", n)
+	}
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	testString := `this is a test`
+
+	dst := make([]byte, 14)
+	_, err = b.Read(dst)
+	if err != io.EOF {
+		t.Fatalf("expected an EOF error but got %v", err)
+	}
+	b.Seek(0, 0)
+	_, err = b.Read(dst)
+	if string(dst) != testString {
+		t.Fatalf("expected `%s` but got `%s`", testString, string(dst))
+	}
+
+	// testing Bytes()
+	b.Seek(0, 0)
+	content := string(b.Bytes())
+	if content != testString {
+		t.Fatalf("expected a rewinded buffer calling Bytes to output `%s` but got `%s`", testString, content)
+	}
+
+	// testing overwriting content
+	b.Seek(0, 0)
+	altTestString := `maybe, this is the real test`
+	b.Write([]byte(altTestString))
+	b.Seek(0, 0)
+	_, err = b.Read(dst)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(dst) != altTestString[:14] {
+		t.Fatalf("expected overwriting the buffer content to read as `%s` but got `%s`", altTestString[:14], string(dst))
+	}
+	// reset the index to the end of the buffer
+	b.Seek(0, 2)
+
+	// testing appending
+	_, err = b.Write([]byte(` or maybe it's not`))
+	if err != nil {
+		t.Fatal(err)
+	}
+	b.Seek(0, 0)
+	content = string(b.Bytes())
+	if content != altTestString+` or maybe it's not` {
+		t.Fatalf("unexpected appended buffer, content: `%s`", content)
+	}
+
+}
