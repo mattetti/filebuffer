@@ -1,6 +1,12 @@
 // filebuffer is a package implementing a few file like interfaces
 // backed by a byte buffer.
-// Reader ReaderAt Writer Seeker Closer
+// Implemented interfaces:
+//
+// * Reader
+// * ReaderAt
+// * Writer
+// * Seeker
+// * Closer
 package filebuffer
 
 import (
