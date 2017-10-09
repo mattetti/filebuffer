@@ -136,6 +136,9 @@ func TestClose(t *testing.T) {
 		t.Fatalf("expected closing to not return an error but returned %v", err)
 	}
 	n, err := b.Write([]byte{0x42, 0x42, 0x42})
+	if err != io.EOF {
+		t.Fatalf("Expecting EOF got: %v", err)
+	}
 	if n != 0 {
 		t.Fatalf("expected 0 bytes to be written but %d were reported written", n)
 	}
@@ -160,6 +163,9 @@ func TestWriter(t *testing.T) {
 	}
 	b.Seek(0, 0)
 	_, err = b.Read(dst)
+	if err != nil {
+		t.Fatalf("Error reading file: %v", err)
+	}
 	if string(dst) != testString {
 		t.Fatalf("expected `%s` but got `%s`", testString, string(dst))
 	}
