@@ -1,12 +1,28 @@
 package filebuffer
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"os"
 	"sync"
 	"testing"
 )
+
+func TestNewFromReader(t *testing.T) {
+	content := []byte("test")
+	reader := bytes.NewReader(content)
+	file := New(content)
+	fileFromReader, err := NewFromReader(reader)
+	if err != nil {
+		t.Fatal(err)
+	}
+	expected := file.Bytes()
+	actual := fileFromReader.Bytes()
+	if !bytes.Equal(expected, actual) {
+		t.Fatalf("expected %s to be equal to %s", expected, actual)
+	}
+}
 
 func TestReader(t *testing.T) {
 	r := New([]byte("0123456789"))
