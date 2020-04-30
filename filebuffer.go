@@ -13,6 +13,7 @@ import (
 	"bytes"
 	"errors"
 	"io"
+	"os"
 )
 
 // Buffer implements interfaces implemented by files.
@@ -57,7 +58,7 @@ func (f *Buffer) String() string {
 // either err == EOF or err == nil. The next Read should return 0, EOF.
 func (f *Buffer) Read(b []byte) (n int, err error) {
 	if f.isClosed {
-		return 0, io.EOF
+		return 0, os.ErrClosed
 	}
 	if len(b) == 0 {
 		return 0, nil
@@ -90,7 +91,7 @@ func (f *Buffer) Read(b []byte) (n int, err error) {
 // Clients of ReadAt can execute parallel ReadAt calls on the same input source.
 func (f *Buffer) ReadAt(p []byte, off int64) (n int, err error) {
 	if f.isClosed {
-		return 0, io.EOF
+		return 0, os.ErrClosed
 	}
 	if off < 0 {
 		return 0, errors.New("filebuffer.ReadAt: negative offset")
@@ -112,7 +113,7 @@ func (f *Buffer) ReadAt(p []byte, off int64) (n int, err error) {
 // by appending the passed bytes to the buffer unless the buffer is closed or index negative.
 func (f *Buffer) Write(p []byte) (n int, err error) {
 	if f.isClosed {
-		return 0, io.EOF
+		return 0, os.ErrClosed
 	}
 	if f.Index < 0 {
 		return 0, io.EOF
@@ -132,7 +133,7 @@ func (f *Buffer) Write(p []byte) (n int, err error) {
 // Seek implements io.Seeker https://golang.org/pkg/io/#Seeker
 func (f *Buffer) Seek(offset int64, whence int) (idx int64, err error) {
 	if f.isClosed {
-		return 0, io.EOF
+		return 0, os.ErrClosed
 	}
 
 	var abs int64
