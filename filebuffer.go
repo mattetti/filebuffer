@@ -13,6 +13,7 @@ import (
 	"bytes"
 	"errors"
 	"io"
+	"io/ioutil"
 	"os"
 )
 
@@ -30,6 +31,17 @@ type Buffer struct {
 // New returns a new populated Buffer
 func New(b []byte) *Buffer {
 	return &Buffer{Buff: bytes.NewBuffer(b)}
+}
+
+// NewFromReader is a convenience method that returns a new populated Buffer
+// whose contents are sourced from a supplied reader by loading it entirely
+// into memory.
+func NewFromReader(reader io.Reader) (*Buffer, error) {
+	data, err := ioutil.ReadAll(reader)
+	if err != nil {
+		return nil, err
+	}
+	return New(data), nil
 }
 
 // Bytes returns the bytes available until the end of the buffer.
