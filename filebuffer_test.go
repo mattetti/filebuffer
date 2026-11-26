@@ -220,3 +220,52 @@ func TestWriter(t *testing.T) {
 	}
 
 }
+
+func TestWriteAfterRewind(t *testing.T) {
+	tests := []struct {
+		name        string
+		offset      int64
+		readFirst   bool
+		replacement string
+		want        string
+	}{
+		{"start", 0, false, "UVWXYZ", "UVWXYZ"},
+		{"middle", 2, false, "WXYZ", "abWXYZ"},
+		{"near end", 4, false, "YZ", "abcdYZ"},
+		{"after read", 4, true, "YZ", "abcdYZ"},
+		{"append", 6, false, "XY", "abcdefXY"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			defer func() {
+				if err := recover(); err != nil {
+					t.Errorf("Write panicked: %v", err)
+				}
+			}()
+
+			data := []byte("abcdef")
+			b := New(data[:len(data):len(data)])
+			if tt.readFirst {
+				if n, err := b.Read(make([]byte, tt.offset)); err != nil || int64(n) != tt.offset {
+					t.Fatalf("Read = %d, %v; want %d, nil", n, err, tt.offset)
+				}
+			} else if _, err := b.Seek(tt.offset, os.SEEK_SET); err != nil {
+				t.Fatal(err)
+			}
+
+			if n, err := b.Write([]byte(tt.replacement)); err != nil || n != len(tt.replacement) {
+				t.Fatalf("Write = %d, %v; want %d, nil", n, err, len(tt.replacement))
+			}
+			wantIndex := tt.offset + int64(len(tt.replacement))
+			if b.Index != wantIndex {
+				t.Errorf("Index = %d; want %d", b.Index, wantIndex)
+			}
+			if _, err := b.Seek(0, os.SEEK_SET); err != nil {
+				t.Fatal(err)
+			}
+			if got := string(b.Bytes()); got != tt.want {
+				t.Errorf("contents = %q; want %q", got, tt.want)
+			}
+		})
+	}
+}

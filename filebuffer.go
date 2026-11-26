@@ -134,7 +134,7 @@ func (f *Buffer) Write(p []byte) (n int, err error) {
 	idx := int(f.Index)
 	buffLen := f.Buff.Len()
 	if idx != buffLen && idx <= buffLen {
-		f.Buff = bytes.NewBuffer(f.Bytes()[:f.Index])
+		f.Buff = bytes.NewBuffer(f.Buff.Bytes()[:f.Index])
 	}
 	n, err = f.Buff.Write(p)
 
